@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<title>Image Compare</title>
+		<style>
+			/* PAGE STYLING */
+			* {
+				box-sizing: border-box;
+			}
+			html {
+				height: 100%;
+			}
+			body {
+				font-family: 'Helvetica Neue', sans-serif;
+				line-height: 1;
+				margin: 0;
+				min-height: 100%;
+				vertical-align: baseline;
+			}
+			button {
+				background: none;
+				border: none;
+				color: inherit;
+				cursor: pointer;
+				font-family: inherit;
+				font-size: 1.25rem;
+				line-height: inherit;
+				padding: 0;
+			}
+			header {
+				background-color: #f3f3f3;
+				border-block-end: 1px solid #c3c3c3;
+				margin-block-end: 50px;
+				padding-block: 5px;
+				padding-inline: 10px;
+			}
+			main {
+				padding-block-end: 10vh;
+			}
+			.text-block {
+				line-height: 1.4;
+				margin-block-end: 10vh;
+				max-width: 75ch;
+				padding-inline: 10px;
+
+				ul {
+					padding-inline-start: 20px;
+				}
+
+				li {
+					padding-block-end: 10px;
+				}
+			}
+			/* END PAGE STYLING */
+
+
+			/* DEMO STYLES */
+			.image-compare {
+				--dark: #000;
+				--light: #fff;
+				
+				display: grid;
+				margin-inline: auto;
+				position: relative;
+				width: fit-content;
+				
+				> * {
+					grid-area: 1 / 1;
+				}
+			}
+			
+			.image-compare__view-1,
+			.image-compare__view-2 {
+				--color-1: var(--dark);
+				--color-2: transparent;
+				
+				display: grid;
+				margin: 0;
+				mask: linear-gradient(to right, var(--color-1) 0, var(--pos, 50%), var(--color-2) 0);
+				place-content: center;
+				
+				> img {
+					max-block-size: 80dvh;
+					max-inline-size: 100%;
+				}
+			}
+			.image-compare__view-2 {
+				--color-1: transparent;
+				--color-2: var(--dark);
+			}
+			
+			.image-compare__range {
+				appearance: none;
+				background: transparent;
+				cursor: pointer;
+				-webkit-tap-highlight-color: transparent;
+				z-index: 1;
+				
+				/* Focus style */
+				&:focus-visible,
+				&:focus-visible + .image-compare__handle::after {
+					outline: 3px solid #cac7a7;
+					outline-offset: 3px;
+				}
+			}
+			
+			/* Styling of the drag handle */
+			/* Note: ::-moz-range-thumb and ::-webkit-slider-thumb weren't used since styling options are limited. */
+			.image-compare__handle {
+				display: grid;
+				height: 100%;
+				left: var(--pos, 50%);
+				place-items: center;
+				pointer-events: none;
+				position: relative;
+				transform: translateX(-50%);
+				width: 44px;
+				z-index: 2;
+				
+				/* Defines the vertical line */
+				&::before {
+					background-color: var(--light);
+					content: '';
+					display: block;
+					grid-area: 1 / -1;
+					height: 100%;
+					margin-inline: auto;
+					width: 1px;
+				}
+				
+				/* Defines the circle and adds the icon */
+				&::after {
+					background: #131313 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='14' fill='%23fff' fill-rule='nonzero'%3E%3Cpath d='M9.038 11.534L3.864 6.972l5.147-4.618L7.425.713.387 7.056l7.066 6.231zm6.696 0l5.174-4.562-5.147-4.618L17.347.713l7.038 6.343-7.066 6.231z'/%3E%3C/svg%3E") center center no-repeat;
+					border: 1px solid #fff;
+					border-radius: 50%;
+					content: '';
+					height: 36px;
+					grid-area: 1 / -1;
+					width: 36px;
+				}
+			}
+			/* END DEMO STYLES */
+		</style>
+    </head>
+    
+    <body>
+		<header>
+			<img src="https://raw.githubusercontent.com/nonsponsored/component-lottie/main/assets/logo-m4m5.svg" width="45" height="34" alt="M4M5 Logo" />
+		</header>
+
+		<main>
+			<div class="text-block">
+				<h1>Image Compare</h1>
+				<h2>Details</h2>
+				<ul>
+					<li>Example of using a range input and CSS mask to compare two images positioned on top of each other.</li>
+					<li>JavaScript is only used to pass the range value to a CSS variable that controls the position of the masks.</li>
+					<li>Works on touch devices.</li>
+				</ul>
+
+				<h2>Considerations</h2>
+				<ul>
+					<li>::-moz-range-thumb and ::-webkit-slider-thumb weren't used to style the range handle, since styling options are limited.</li>
+				</ul>
+			</div>
+
+			
+			<div class="image-compare">
+				<figure class="image-compare__view-1">
+					<img src="assets/halo-spartan-front.png" alt="Front view of Halo Spartan" />
+				</figure>
+				
+				<figure class="image-compare__view-2">
+					<img src="assets/halo-spartan-back.png" alt="Back view of Halo Spartan" />
+				</figure>
+				
+				<input type="range" class="image-compare__range" step="0.1">
+				
+				<div class="image-compare__handle" aria-hidden="true"></div>
+			</div>
+		</main>
+
+		<script>
+			class ImageCompare {
+				container
+		
+				constructor(itemContainer) {
+					// Check for container and initialized
+					if (!itemContainer || itemContainer.inited) {
+						return
+					}
+					itemContainer.inited = true
+		
+					this.container = itemContainer
+					this.rangeInput = this.container.querySelector('.image-compare__range')
+
+					this.rangeInput.addEventListener('input', () => {
+					    this.container.style.setProperty('--pos', this.rangeInput.value + '%');
+					})
+				}
+			}
+			
+			document.querySelectorAll('.image-compare').forEach((item) => {
+				new ImageCompare(item)
+			})
+		</script>
+	</body>
+</html>
